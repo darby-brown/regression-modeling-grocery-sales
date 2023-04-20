@@ -129,11 +129,13 @@ aggregate(snacks$Item_MRP, list(snacks$Outlet_Type), FUN=mean)
 ```
 
 ```{r}
-model_4 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility) * Item_MRP + Outlet_Type, data = fruits_and_veg)
-model_5 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility) * Item_MRP + Outlet_Type, data = snacks)
+model_4 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility) * Item_MRP + Outlet_Type, data = test_data)
+model_5 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility) * Item_MRP + Outlet_Type, data = fruits_and_veg)
+model_6 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility) * Item_MRP + Outlet_Type, data = snacks)
 
 summary(model_4)
 summary(model_5)
+summary(model_6)
 ```
 
 ```{r}
@@ -148,7 +150,7 @@ stargazer(model_1, model_2, model_3, column.sep.width = "3pt", font.size = "smal
 \newpage
 
 ```{r, results='asis'}
-stargazer(model_4, model_5, column.sep.width = "3pt", font.size = "small", dep.var.labels = c('Log(Outlet Sales)'), title = 'Regression Model Results Comparing Item Data', covariate.labels = c('Log(Visibility)', 'Maximum Retail Price (MRP)', 'Type 1 Supermarket', 'Type 2 Supermarket', 'Type 3 Supermarket', 'Log(Visibility) - MRP Interaction', 'Constant'))
+stargazer(model_4, model_5, model_6, column.sep.width = "3pt", font.size = "small", dep.var.labels = c('Log(Outlet Sales)'), title = 'Regression Model Results Comparing Item Data', covariate.labels = c('Log(Visibility)', 'Maximum Retail Price (MRP)', 'Type 1 Supermarket', 'Type 2 Supermarket', 'Type 3 Supermarket', 'Log(Visibility) - MRP Interaction', 'Constant'))
 ```
 
 \newpage
