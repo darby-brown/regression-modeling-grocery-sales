@@ -109,6 +109,26 @@ summary(model_3)
 ```
 
 ```{r}
+dairy <- filter(test_data, Item_Type %in% c("Dairy"))
+aggregate(dairy$Item_MRP, list(dairy$Outlet_Type), FUN=mean)
+```
+
+```{r}
+fruits_and_veg <- filter(test_data, Item_Type %in% c("Fruits and Vegetables"))
+aggregate(fruits_and_veg$Item_MRP, list(fruits_and_veg$Outlet_Type), FUN=mean)
+```
+
+```{r}
+canned <- filter(test_data, Item_Type %in% c("Canned"))
+aggregate(canned$Item_MRP, list(canned$Outlet_Type), FUN=mean)
+```
+
+```{r}
+snacks <- filter(test_data, Item_Type %in% c("Snack Foods"))
+aggregate(snacks$Item_MRP, list(snacks$Outlet_Type), FUN=mean)
+```
+
+```{r}
 model_4 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility) * Item_MRP + Outlet_Type, data = fruits_and_veg)
 model_5 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility) * Item_MRP + Outlet_Type, data = snacks)
 
@@ -130,3 +150,26 @@ stargazer(model_1, model_2, model_3, column.sep.width = "3pt", font.size = "smal
 ```{r, results='asis'}
 stargazer(model_4, model_5, column.sep.width = "3pt", font.size = "small", dep.var.labels = c('Log(Outlet Sales)'), title = 'Regression Model Results Comparing Item Data', covariate.labels = c('Log(Visibility)', 'Maximum Retail Price (MRP)', 'Type 1 Supermarket', 'Type 2 Supermarket', 'Type 3 Supermarket', 'Log(Visibility) - MRP Interaction', 'Constant'))
 ```
+
+\newpage
+
+```{r}
+plot_one <- train_data %>%
+ggplot(aes(x = resid(model_3))) + geom_histogram()
+plot_two <- train_data %>%
+ggplot(aes(sample = resid(model_3))) + stat_qq() + stat_qq_line()
+plot_one / plot_two
+```
+
+```{r}
+lmtest::bptest(model_3)
+```
+```{r}
+ggplot(train_data, aes(predict(model_3), resid(model_3))) + geom_point() + stat_smooth()
+```
+```{r}
+ggplot(train_data, aes(Item_Visibility, resid(model_3))) + geom_point() + stat_smooth()
+ggplot(train_data, aes(Item_MRP, resid(model_3))) + geom_point() + stat_smooth()
+ggplot(train_data, aes(Outlet_Type, resid(model_3))) + geom_point() + stat_smooth()
+```
+
