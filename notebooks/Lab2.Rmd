@@ -1,0 +1,128 @@
+---
+title: "Lab2"
+output: pdf_document
+date: "2023-04-16"
+---
+
+```{r load packages and set options, include=FALSE}
+library(tidyverse) 
+library(magrittr)
+library(knitr)
+library(patchwork)
+library(moments)
+library(car)
+library(lmtest)
+library(sandwich)
+library(stargazer)
+theme_set(theme_bw())
+options(tinytex.verbose = TRUE)
+knitr::opts_chunk$set(echo=FALSE, message=FALSE)
+```
+
+## R Markdown
+
+```{r}
+grocery_data <- read.csv("data.csv")
+```
+
+```{r}
+summary(grocery_data)
+```
+
+```{r}
+update_weights <- function(data) {
+  data %>%
+    group_by(Item_Identifier) %>%
+    mutate(Item_Weight = ifelse(is.na(Item_Weight), max(Item_Weight, na.rm = TRUE), Item_Weight)) %>%
+    ungroup()
+}
+
+grocery_data <- update_weights(grocery_data)
+grocery_data <- filter(grocery_data,Item_Visibility>0)
+summary(grocery_data)
+```
+
+```{r}
+dairy <- filter(grocery_data, Item_Type %in% c("Dairy"))
+aggregate(dairy$Item_MRP, list(dairy$Outlet_Type), FUN=mean)
+```
+
+```{r}
+fruits_and_veg <- filter(grocery_data, Item_Type %in% c("Fruits and Vegetables"))
+aggregate(fruits_and_veg$Item_MRP, list(fruits_and_veg$Outlet_Type), FUN=mean)
+```
+
+```{r}
+canned <- filter(grocery_data, Item_Type %in% c("Canned"))
+aggregate(canned$Item_MRP, list(canned$Outlet_Type), FUN=mean)
+```
+
+```{r}
+snacks <- filter(grocery_data, Item_Type %in% c("Snack Foods"))
+aggregate(snacks$Item_MRP, list(snacks$Outlet_Type), FUN=mean)
+```
+
+```{r}
+hist(grocery_data$Item_Visibility, xlab = 'Item Visbility', main = 'Histogram of Item Visibility')
+hist(grocery_data$Item_Outlet_Sales, xlab = 'Outlet Sales', main = 'Histogram of Outlet Sales')
+```
+
+```{r}
+hist(log(grocery_data$Item_Visibility), xlab = 'log(Item Visbility)', main = 'Histogram of Log Item Visibility')
+hist(log(grocery_data$Item_Outlet_Sales), xlab = 'log(Outlet Sales)', main = 'Histogram of Log Outlet Sales')
+```
+
+```{r}
+hist(grocery_data$Item_MRP, xlab = 'Item MRP', main = 'Histogram of Item MRP')
+hist(log(grocery_data$Item_MRP), xlab = 'log(Item MRP)', main = 'Histogram of Log Item MRP')
+```
+
+```{r}
+ggplot(grocery_data, aes(Item_Type, Item_Outlet_Sales)) + 
+  geom_point() +
+  theme(axis.text=element_text(size=4))
+```
+
+```{r}
+# Split Data into Training and Testing in R 
+sample_size = floor(0.7*nrow(grocery_data))
+set.seed(777)
+
+# randomly split data in r
+picked = sample(seq_len(nrow(grocery_data)), size = sample_size)
+train_data = grocery_data[-picked,]
+test_data = grocery_data[picked,]
+
+summary(train_data)
+summary(test_data)
+```
+
+```{r}
+model_1 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility), data = train_data)
+model_2 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility) * Item_MRP, data = train_data)
+model_3 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility) * Item_MRP + Outlet_Type, data = train_data)
+```
+
+```{r}
+# Perform an F test using anova()
+anova(model_1, model_2, model_3)
+```
+
+```{r}
+summary(model_1)
+summary(model_2)
+summary(model_3)
+```
+
+```{r}
+model_4 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility) * Item_MRP + Outlet_Type, data = fruits_and_veg)
+model_5 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility) * Item_MRP + Outlet_Type, data = snacks)
+
+summary(model_4)
+summary(model_5)
+```
+
+```{r}
+vif(model_2, type = 'predictor')
+vif(model_3, type = 'predictor')
+```
