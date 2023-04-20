@@ -78,12 +78,6 @@ hist(log(grocery_data$Item_MRP), xlab = 'log(Item MRP)', main = 'Histogram of Lo
 ```
 
 ```{r}
-ggplot(grocery_data, aes(Item_Type, Item_Outlet_Sales)) + 
-  geom_point() +
-  theme(axis.text=element_text(size=4))
-```
-
-```{r}
 # Split Data into Training and Testing in R 
 sample_size = floor(0.7*nrow(grocery_data))
 set.seed(777)
@@ -125,4 +119,14 @@ summary(model_5)
 ```{r}
 vif(model_2, type = 'predictor')
 vif(model_3, type = 'predictor')
+```
+\newpage
+
+```{r, results='asis'}
+stargazer(model_1, model_2, model_3, column.sep.width = "3pt", font.size = "small", dep.var.labels = c('Log(Outlet Sales)'), title = 'Regression Model Results Comparing Models', covariate.labels = c('Log(Visibility)', 'Maximum Retail Price (MRP)', 'Type 1 Supermarket', 'Type 2 Supermarket', 'Type 3 Supermarket', 'Log(Visibility) - MRP Interaction', 'Constant'))
+```
+\newpage
+
+```{r, results='asis'}
+stargazer(model_4, model_5, column.sep.width = "3pt", font.size = "small", dep.var.labels = c('Log(Outlet Sales)'), title = 'Regression Model Results Comparing Item Data', covariate.labels = c('Log(Visibility)', 'Maximum Retail Price (MRP)', 'Type 1 Supermarket', 'Type 2 Supermarket', 'Type 3 Supermarket', 'Log(Visibility) - MRP Interaction', 'Constant'))
 ```
