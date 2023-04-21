@@ -63,12 +63,10 @@ aggregate(snacks$Item_MRP, list(snacks$Outlet_Type), FUN=mean)
 ```
 
 ```{r}
+par(mfrow=c(2,2))
 hist(grocery_data$Item_Visibility, xlab = 'Item Visbility', main = 'Histogram of Item Visibility')
-hist(grocery_data$Item_Outlet_Sales, xlab = 'Outlet Sales', main = 'Histogram of Outlet Sales')
-```
-
-```{r}
 hist(log(grocery_data$Item_Visibility), xlab = 'log(Item Visbility)', main = 'Histogram of Log Item Visibility')
+hist(grocery_data$Item_Outlet_Sales, xlab = 'Outlet Sales', main = 'Histogram of Outlet Sales')
 hist(log(grocery_data$Item_Outlet_Sales), xlab = 'log(Outlet Sales)', main = 'Histogram of Log Outlet Sales')
 ```
 
@@ -92,9 +90,13 @@ summary(test_data)
 ```
 
 ```{r}
-model_1 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility), data = train_data)
-model_2 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility) * Item_MRP, data = train_data)
-model_3 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility) * Item_MRP + Outlet_Type, data = train_data)
+# model_1 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility), data = train_data)
+# model_2 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility) * Item_MRP, data = train_data)
+# model_3 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility) * Item_MRP + Outlet_Type, data = train_data)
+
+model_1 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility), data = test_data)
+model_2 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility) * Item_MRP, data = test_data)
+model_3 <- lm(log(Item_Outlet_Sales) ~ log(Item_Visibility) * Item_MRP + Outlet_Type, data = test_data)
 ```
 
 ```{r}
@@ -110,22 +112,9 @@ summary(model_3)
 
 ```{r}
 dairy <- filter(test_data, Item_Type %in% c("Dairy"))
-aggregate(dairy$Item_MRP, list(dairy$Outlet_Type), FUN=mean)
-```
-
-```{r}
 fruits_and_veg <- filter(test_data, Item_Type %in% c("Fruits and Vegetables"))
-aggregate(fruits_and_veg$Item_MRP, list(fruits_and_veg$Outlet_Type), FUN=mean)
-```
-
-```{r}
 canned <- filter(test_data, Item_Type %in% c("Canned"))
-aggregate(canned$Item_MRP, list(canned$Outlet_Type), FUN=mean)
-```
-
-```{r}
 snacks <- filter(test_data, Item_Type %in% c("Snack Foods"))
-aggregate(snacks$Item_MRP, list(snacks$Outlet_Type), FUN=mean)
 ```
 
 ```{r}
@@ -142,36 +131,85 @@ summary(model_6)
 vif(model_2, type = 'predictor')
 vif(model_3, type = 'predictor')
 ```
+
 \newpage
 
 ```{r, results='asis'}
 stargazer(model_1, model_2, model_3, column.sep.width = "3pt", font.size = "small", dep.var.labels = c('Log(Outlet Sales)'), title = 'Regression Model Results Comparing Models', covariate.labels = c('Log(Visibility)', 'Maximum Retail Price (MRP)', 'Type 1 Supermarket', 'Type 2 Supermarket', 'Type 3 Supermarket', 'Log(Visibility) - MRP Interaction', 'Constant'))
 ```
+
 \newpage
 
-```{r, results='asis'}
+```{r}
 stargazer(model_4, model_5, model_6, column.sep.width = "3pt", font.size = "small", dep.var.labels = c('Log(Outlet Sales)'), title = 'Regression Model Results Comparing Item Data', covariate.labels = c('Log(Visibility)', 'Maximum Retail Price (MRP)', 'Type 1 Supermarket', 'Type 2 Supermarket', 'Type 3 Supermarket', 'Log(Visibility) - MRP Interaction', 'Constant'))
 ```
 
 \newpage
 
 ```{r}
-plot_one <- train_data %>%
+plot_one <- test_data %>%
 ggplot(aes(x = resid(model_3))) + geom_histogram()
-plot_two <- train_data %>%
+plot_two <- test_data %>%
 ggplot(aes(sample = resid(model_3))) + stat_qq() + stat_qq_line()
+
 plot_one / plot_two
 ```
 
 ```{r}
-lmtest::bptest(model_3)
-```
-```{r}
-ggplot(train_data, aes(predict(model_3), resid(model_3))) + geom_point() + stat_smooth()
-```
-```{r}
-ggplot(train_data, aes(Item_Visibility, resid(model_3))) + geom_point() + stat_smooth()
-ggplot(train_data, aes(Item_MRP, resid(model_3))) + geom_point() + stat_smooth()
-ggplot(train_data, aes(Outlet_Type, resid(model_3))) + geom_point() + stat_smooth()
+lmtest::bptest(model_4)
 ```
 
+```{r}
+ggplot(test_data, aes(predict(model_3), resid(model_3))) + geom_point() + stat_smooth()
+```
+
+```{r}
+ggplot(test_data, aes(Item_Visibility, resid(model_3))) + geom_point() + stat_smooth()
+ggplot(test_data, aes(Item_MRP, resid(model_3))) + geom_point() + stat_smooth()
+ggplot(test_data, aes(Outlet_Type, resid(model_3))) + geom_point() + stat_smooth()
+```
+
+\begin{table}[!htbp] \centering 
+  \caption{Regression Model Results Comparing Item Data} 
+  \label{} 
+\small 
+\begin{tabular}{@{\extracolsep{3pt}}lccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{3}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-4} 
+\\[-1.8ex] & \multicolumn{3}{c}{Log(Outlet Sales)} \\ 
+\\[-1.8ex] & All Products & Fruits/Veg & Snack Foods \\ 
+\hline \\[-1.8ex] 
+ Log(Visibility) & 0.028$^{*}$ & 0.030 & 0.033 \\ 
+  & (0.015) & (0.044) & (0.042) \\ 
+  & & & \\ 
+ Maximum Retail Price (MRP) & 0.008$^{***}$ & 0.008$^{***}$ & 0.008$^{***}$ \\ 
+  & (0.0003) & (0.001) & (0.001) \\ 
+  & & & \\ 
+ Type 1 Supermarket & 1.954$^{***}$ & 1.966$^{***}$ & 2.003$^{***}$ \\ 
+  & (0.014) & (0.038) & (0.040) \\ 
+  & & & \\ 
+ Type 2 Supermarket & 1.774$^{***}$ & 1.797$^{***}$ & 1.856$^{***}$ \\ 
+  & (0.019) & (0.050) & (0.053) \\ 
+  & & & \\ 
+ Type 3 Supermarket & 2.476$^{***}$ & 2.593$^{***}$ & 2.526$^{***}$ \\ 
+  & (0.019) & (0.050) & (0.053) \\ 
+  & & & \\ 
+ Log(Visibility) - MRP Interaction & $-$0.0002$^{**}$ & $-$0.0001 & $-$0.0001 \\ 
+  & (0.0001) & (0.0003) & (0.0003) \\ 
+  & & & \\ 
+ Constant & 4.470$^{***}$ & 4.472$^{***}$ & 4.485$^{***}$ \\ 
+  & (0.045) & (0.131) & (0.131) \\ 
+  & & & \\ 
+\hline \\[-1.8ex] 
+Observations & 9,327 & 1,327 & 1,315 \\ 
+R$^{2}$ & 0.789 & 0.796 & 0.768 \\ 
+Adjusted R$^{2}$ & 0.789 & 0.795 & 0.767 \\ 
+Residual Std. Error & 0.440 (df = 9320) & 0.442 (df = 1320) & 0.450 (df = 1308) \\ 
+F Statistic & 5,807.752$^{***}$ (df = 6; 9320) & 857.568$^{***}$ (df = 6; 1320) & 720.034$^{***}$ (df = 6; 1308) \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{table}
